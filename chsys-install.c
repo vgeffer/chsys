@@ -3,11 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "install.h"
+#include "installation/install.h"
 #include "util.h"
 
 Mutex* install_lock = NULL;
-
 
 //For handling Ctrl-C and Ctrl-D signals
 int signal_handler() {
@@ -20,28 +19,22 @@ void help () {
     printf("(c) giantdawrf 2022\n\n");
 
     printf("Usage:\n");
-    printf(" chsys-install [action] [package path]\n\n");
+    printf(" chsys-install [switches] [action] [package path]\n\n");
 
-    printf("Actions:\n");
-    printf(" add = add package\n"); 
-    printf(" rem = remove package\n");
+    printf(" d = download package from repositories\n");
+    printf(" f = use local package archive\n");
+    printf(" o = override, force action (not recomended using)\n");
+    printf(" r = recursive (also removes package dependecies)\n");
 
-    /* For future expansion */
-    //printf(" d = download package from repositories\n");
-    //printf(" f = use local package archive\n");
-    //printf(" o = override, force action (not recomended using)\n");
-    //printf(" r = recursive (also removes package dependecies)\n");
+    printf("Special packages:\n");
+    printf(" world: repository definition for main repository of chsys. \n");
+    printf(" core: repository definition for base repository containing linux and other base programs.\n");
+    printf(" all: every installed package on the system.\n\n");
 
-    //printf("Special packages:\n");
-    //printf(" world: repository definition for main repository of chsys. \n");
-    //printf(" core: repository definition for base repository containing linux and other base programs.\n");
-    //printf(" all: every installed package on the system.\n\n");
-
-    //printf("Example usage: \n");
-    //printf(" Updating all packages: chsys-install U world all\n");
-    //printf(" Install package from repository: chsys-install Ad package\n");
-    //printf(" Uninstall package with all of it's dependencies: chsys-install Rr package\n");
-
+    printf("Example usage: \n");
+    printf(" Updating all packages: chsys-install U world all\n");
+    printf(" Install package from repository: chsys-install Ad package\n");
+    printf(" Uninstall package with all of it's dependencies: chsys-install Rr package\n");
 
     exit(0);
 }
@@ -74,8 +67,9 @@ int main (int argc, char* argv[]) {
     if (strcmp(argv[1], "add") == 0)
         install(argv[2]);
 
-    else if (strcmp(argv[1], "rem") == 0);
-        //remove(argv[2]);
+    else if (strcmp(argv[1], "rem") == 0) {
+        rem(argv[2]);
+    }
 
     else
         printf("Unknow action: %s\n", argv[1]);

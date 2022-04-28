@@ -102,45 +102,73 @@ int install(char* pk_path) {
     free(meta_name);
 
     //Write to pkdb
-    pkadd(pk_name, pk_ver);
     return result;
 }
 
 //DONE!
 int copy_out_files(char* pk_origin, char* pk_target, bool silent) {
+
     DIR* pk_from = opendir(pk_origin);
-  
-    if (pk_from == NULL) 
+    if (pk_from == NULL)
         return -1;
 
-    struct dirent* pkdir_file; 
-  
-    while ((pkdir_file = readdir(pk_from)) != NULL) {
-        if(pkdir_file->d_type != DT_DIR) {
-            //Remove original and copy new
-            remove(concat(pk_target, pkdir_file->d_name));
-            copy_file(concat(pk_origin, pkdir_file->d_name), concat(pk_target, pkdir_file->d_name));
+    struct dirent* pkdir_file;
 
-            printf("%s/%s -> %s/%s\n", pk_origin, pkdir_file->d_name, pk_target, pkdir_file->d_name);
+
+    while ((pkdir_file = readdir(pk_from)) != NULL) {
+
+        if(pkdir_file->d_type != DT_DIR) {
+
+            char* copy_slash_origin = concat(pk_origin, "/");
+            char* copy_slash_target = concat(pk_target, "/");
+
+            char* copy_origin = concat(copy_slash_origin, pkdir_file->d_name);
+            char* copy_target = concat(copy_slash_target, pkdir_file->d_name);
+
+            //Remove original and copy new
+            remove(copy_target);
+            int res = copy_file(copy_origin, copy_target);
+
+            if (res < 0) {
+                printf("File copy FAILED!\n");
+                exit(res);
+            }
+
+            if (!silent)
+                printf("%s -> %s\n", copy_origin, copy_target);
         }
 
-        else if(pkdir_file->d_type == DT_DIR && 
-                strcmp(pkdir_file->d_name, ".") != 0 && 
+        else if(pkdir_file->d_type == DT_DIR &&
+                strcmp(pkdir_file->d_name, ".") != 0 &&
                 strcmp(pkdir_file->d_name, "..") != 0) {
 
 
             struct stat pk_dir;
             if (stat(concat(pk_origin, pkdir_file->d_name), &pk_dir) != 0) {
-                mkdir(concat(pk_target, pkdir_file->d_name), 
+                mkdir(concat(pk_target, pkdir_file->d_name),
                       S_IRGRP | S_IWGRP | S_IXGRP);
-            } 
-            copy_out_files(concat(pk_origin, pkdir_file->d_name), concat(pk_target, pkdir_file->d_name), silent); // recall with the new path
+            }
+
+            //Done this way to prevent memory leaks from unfreed concats
+            char* path_slash_origin = concat(pk_origin, "/");
+            char* path_slash_target = concat(pk_target, "/");
+
+            char* pk_final_origin = concat(path_slash_origin, pkdir_file->d_name);
+            char* pk_final_target = concat(path_slash_target, pkdir_file->d_name);
+
+            copy_out_files(pk_final_origin, pk_final_target, silent); // recall with the new path
+
+            free(path_slash_origin);
+            free(path_slash_target);
+            free(pk_final_origin);
+            free(pk_final_target);
         }
     }
 
     closedir(pk_from); // finally close the directory
     return 0;
 }
+
 
 int worker_build (int uid, const char* pk_path, const char* pk_home) {
 
@@ -223,8 +251,10 @@ int worker_install(int uid, const char* pk_path, const char* pk_home) {
         if (pk_preinstall == 0)
             execl("/bin/bash", "/bin/bash", "-c", concat(pk_home, "/install/pre.sh"), NULL);
         wait(NULL);
-    } 
+    }
+
     //copy out files
+    printf("\nCopying files\n");
     int res = copy_out_files(concat(pk_home, "/package/"), "/", false);
 
     //run post_install script
@@ -313,4 +343,62 @@ int install_handler (const char* pk_name, const char* pk_path) {
     wait(&pk_install_status);
     free(pk_home);
     return pk_install_status;
+}
+
+int rem(const char* pk_name) {
+
+    char* pk_origin = concat("/usr/chsys/pkg/", pk_name);
+    char* pk_target = "/";
+
+    DIR* pk_from = opendir(pk_origin);
+    if (pk_from == NULL)
+        return -1;
+
+    struct dirent* pkdir_file;
+
+
+    while ((pkdir_file = readdir(pk_from)) != NULL) {
+
+        if(pkdir_file->d_type != DT_DIR) {
+
+            char* copy_slash_origin = concat(pk_origin, "/");
+            char* copy_slash_target = concat(pk_target, "/");
+
+            char* copy_origin = concat(copy_slash_origin, pkdir_file->d_name);
+            char* copy_target = concat(copy_slash_target, pkdir_file->d_name);
+
+            //Remove original and copy new
+            remove(copy_target);
+            remove(copy_origin);
+
+            printf("Removing: %s\n", copy_target);
+        }
+
+        else if(pkdir_file->d_type == DT_DIR &&
+                strcmp(pkdir_file->d_name, ".") != 0 &&
+                strcmp(pkdir_file->d_name, "..") != 0) {
+
+            //Done this way to prevent memory leaks from unfreed concats
+            char* path_slash_origin = concat(pk_origin, "/");
+            char* path_slash_target = concat(pk_target, "/");
+
+            char* pk_final_origin = concat(path_slash_origin, pkdir_file->d_name);
+            char* pk_final_target = concat(path_slash_target, pkdir_file->d_name);
+
+            rem(pk_final_origin); // recall with the new path
+            remove(pk_final_origin);
+            remove(pk_final_target);
+
+            free(path_slash_origin);
+            free(path_slash_target);
+            free(pk_final_origin);
+            free(pk_final_target);
+        }
+    }
+
+    closedir(pk_from); // finally close the directory
+    free(pk_origin);
+
+    //Call userdel
+    return 0;
 }

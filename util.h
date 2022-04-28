@@ -3,6 +3,8 @@
 // (c) giantdwarf 2022
 // module containing utility functions for chsys package manager
 //
+
+
 #pragma once
 
 #define _XOPEN_SOURCE 600 
@@ -15,6 +17,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 //Concat two strings into one
 char* concat(char* a, char* b);

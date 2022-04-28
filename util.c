@@ -43,9 +43,17 @@ int copy_file(char* src, char* dest) {
     int in = open(src, O_RDONLY);
     int out = open(dest, O_CREAT | O_WRONLY, 0770);
    
-    if (in < 0 || out < 0)
+    if (in < 0 || out < 0) {
+
+        if (in == -1 && errno == EACCES)
+            printf("EACCES in %d\n", in);
+        if (out == -1 && errno == EACCES)
+            printf("EACCES out %d\n", in);
         return -1;
-   
+
+
+    }
+
 
     char buf[8192];
     posix_fadvise(in, 0, 0, POSIX_FADV_SEQUENTIAL);
@@ -70,7 +78,7 @@ int copy_file(char* src, char* dest) {
 }
 Mutex* create_mutex(char* lock_file) {
 
-    int lock_fd = open(lock_file, O_CREAT | O_RDWR);
+    int lock_fd = open(lock_file, O_CREAT | O_RDWR, 0);
 
     if (lock_fd < 0)
         return NULL;
