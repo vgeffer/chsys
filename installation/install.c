@@ -169,7 +169,6 @@ int copy_out_files(char* pk_origin, char* pk_target, bool silent) {
     return 0;
 }
 
-
 int worker_build (int uid, const char* pk_path, const char* pk_home) {
 
     setuid(uid);
@@ -256,6 +255,8 @@ int worker_install(int uid, const char* pk_path, const char* pk_home) {
     //copy out files
     printf("\nCopying files\n");
     int res = copy_out_files(concat(pk_home, "/package/"), "/", false);
+    if (res != 0)
+        printf("%n", res);
 
     //run post_install script
     if (stat(concat(pk_home, "/install/post.sh"), &pk_install) == 0) {
@@ -347,8 +348,32 @@ int install_handler (const char* pk_name, const char* pk_path) {
 
 int rem(const char* pk_name) {
 
+
     char* pk_origin = concat("/usr/chsys/pkg/", pk_name);
-    char* pk_target = "/";
+
+    struct stat pkg_stat;
+    if (stat(pk_origin, &pkg_stat) != 0) {
+        printf("%s: Package not found!\n", pk_name);
+        return -1;
+    }
+
+    int pk_rem_status;
+    pid_t pk_rem_fork = fork();
+
+    remove_recursive(pk_origin, "/", false);
+
+    if (pk_rem_fork == 0)
+        execl("/sbin/userdel", "/sbin/userdel", pk_name, NULL);
+    wait(&pk_rem_status);
+
+    remove(pk_origin);
+    free(pk_origin);
+
+    //Call userdel
+    return 0;
+}
+
+int remove_recursive(char* pk_origin, char* pk_target, bool root) {
 
     DIR* pk_from = opendir(pk_origin);
     if (pk_from == NULL)
@@ -370,8 +395,11 @@ int rem(const char* pk_name) {
             //Remove original and copy new
             remove(copy_target);
             remove(copy_origin);
-
-            printf("Removing: %s\n", copy_target);
+            //printf("%s -> %s\n", copy_origin, copy_target);
+            if (root)
+                printf("Removing: %s\n", copy_target);
+            else
+                printf("Removing: %s\n", copy_origin);
         }
 
         else if(pkdir_file->d_type == DT_DIR &&
@@ -385,9 +413,12 @@ int rem(const char* pk_name) {
             char* pk_final_origin = concat(path_slash_origin, pkdir_file->d_name);
             char* pk_final_target = concat(path_slash_target, pkdir_file->d_name);
 
-            rem(pk_final_origin); // recall with the new path
+            if (strcmp(pkdir_file->d_name, "package") == 0) {
+                remove_recursive(pk_final_origin, "/", true); // recall
+            }
+            else
+                remove_recursive(pk_final_origin, pk_final_target, root);
             remove(pk_final_origin);
-            remove(pk_final_target);
 
             free(path_slash_origin);
             free(path_slash_target);
@@ -395,10 +426,32 @@ int rem(const char* pk_name) {
             free(pk_final_target);
         }
     }
+    closedir(pk_from); // finally close the directory
+}
+
+int query() {
+
+    char* pk_origin = "/usr/chsys/pkg";
+
+    DIR* pk_from = opendir(pk_origin);
+    if (pk_from == NULL)
+        return -1;
+
+    struct dirent* pkdir_file;
+
+
+    while ((pkdir_file = readdir(pk_from)) != NULL) {
+
+
+        if(pkdir_file->d_type == DT_DIR &&
+                strcmp(pkdir_file->d_name, ".") != 0 &&
+                strcmp(pkdir_file->d_name, "..") != 0) {
+
+            printf("%s\n", pkdir_file->d_name);
+        }
+    }
 
     closedir(pk_from); // finally close the directory
-    free(pk_origin);
-
     //Call userdel
     return 0;
 }

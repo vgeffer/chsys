@@ -37,3 +37,5 @@ int build_handler(const char* pk_name, const char* pk_path);
 int install_handler (const char* pk_name, const char* pk_path);
 
 int rem(const char* pk_name);
+int remove_recursive(char* pk_origin, char* pk_target, bool root);
+int query();
