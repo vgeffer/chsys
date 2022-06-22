@@ -19,6 +19,15 @@
 #include <fcntl.h>
 #include <errno.h>
 
+
+/*#ifdef //if system is 64 bit
+    #define SYSOFSET uint64_t
+#else
+    #define SYSOFSET uint32_t
+#enif*/
+#define ARRAY_LENGTH(a) sizeof(a) / sizeof(a[1])
+
+
 //Concat two strings into one
 char* concat(char* a, char* b);
 

@@ -10,8 +10,8 @@ int install(char* pk_path) {
     }            
 
     //Check for installation deps
-    if (!check_install_deps())
-        exit(-1);
+   // if (!check_install_deps())
+    //    exit(-1);
 
     char* meta_dir = concat("/tmp/chsys/", pk_path);
     

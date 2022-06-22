@@ -1,0 +1,8 @@
+
+
+[ ] Implement custom /etc/passwd & /etc/shadow handlers -> remove dependency on useradd (shadow)
+[ ] Implement custom build solution
+    [ ] Implement chroot container creation
+    [ ] Implement chroot container logic
+    [ ] Implement chroot container destruction
+[ ] Implement logging

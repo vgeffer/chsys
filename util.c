@@ -6,7 +6,7 @@ char* concat(char* a,  char* b) {
     return result;
 }
 
-char** split(char* a, char delim) {
+/*char** split(char* a, char delim) {
 
     uint32_t substr_count = 0;
     char **substrings, *string;
@@ -37,7 +37,7 @@ char** split(char* a, char delim) {
     }
 
     return substrings;
-}
+}*/
 
 int copy_file(char* src, char* dest) {
     int in = open(src, O_RDONLY);

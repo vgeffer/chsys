@@ -1,5 +1,7 @@
 SHELL := /bin/bash
-CCFLAGS := -O2 -std=c99 -march=native -m64 -g -Wall
+
+CCFLAGS := -std=c99 -march=native -m64 -g -Wall
+
 LOGFILE = .compilelog
 
 src := $(shell find -name \*.c)
@@ -13,10 +15,12 @@ $(obj): build/%.o : %.c
 .PHONY: build, install, clean
 build: $(obj)
 	@echo linking target: chsys && \
-	gcc build/chsys-install.o build/util.o build/installation/install.o build/package/dependency.o -o chsys
+	gcc $(obj) -o chsys
 
 
 install:
 
 clean:
-	rm -r build
+	rm -rf build
+	rm -f .compilelog
+	rm -f chsys
