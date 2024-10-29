@@ -431,7 +431,7 @@ int remove_recursive(char* pk_origin, char* pk_target, bool root) {
 
 int query() {
 
-    char* pk_origin = "/usr/chsys/pkg";
+    const char* pk_origin = "/usr/chsys/pkg";
 
     DIR* pk_from = opendir(pk_origin);
     if (pk_from == NULL)
