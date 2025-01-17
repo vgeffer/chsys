@@ -1,20 +1,17 @@
 # chsys
-An experimental binary/source package manager for Linux
 
-Also contains testing package **test.tar**
+> [!NOTE] 
+> This software is under active(ish) development. It is not yet ready for usage/release.
 
-Confirmed working on:
-  - Arch Linux, Kernel v. 5.16.14
-  - POP_os, Kernel v. 5.16.11
+An experimental binary/source package manager for Linux.
 
+### Roadmap
+  
+  **Alpha 0.1 Release**
+  - [x] Package structures
+  - [ ] Tar handler
+  - [ ] Local package database
+  - [ ] Installing package from file
+  - [ ] Removing package
+  - [ ] List installed packages
 
-Compiling:
-```
-# make build && cp chsys-install /bin && cp chsys-query /bin
-```
-
-
-Installing package:
-```
-# chsys-install add test.tar
-```
