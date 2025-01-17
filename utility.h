@@ -18,31 +18,9 @@
 //    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 /////////////////////////////////////////////////////////////////////////////////
-#include <signal.h>
-#include <stdlib.h>
+#pragma once
+
+#define ARRAY_LENGTH(a) sizeof(a) / sizeof(a[1])
 
 
-/* For handling Ctrl-C and Ctrl-D signals */
-void signal_handler(int sig) {
-
-}
-
-void help () {;
-    exit(0);
-}
-
-void version () {
-    exit(0);
-}
-
-int main (int argc, char* argv[]) {
-    //There always needs to be at least one arg (or explicitly check for help)
-    if (argc < 2)
-        help();
-
-
-    /* Setup signal handlers */
-    if (signal(SIGTERM, &signal_handler) == SIG_ERR) {
-        exit(-1);
-    }
-}
+const char* uuid_from_string(const char* uuid_string);
